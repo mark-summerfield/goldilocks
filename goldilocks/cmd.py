@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 
 from .goldilocks import Goldilocks
-from .util import parse_si_bp
+from .util import (
+    FORMAT_BED, FORMAT_CIRCOS, FORMAT_MELT, FORMAT_TABLE, parse_si_bp,
+    SORT_MIN, SORT_MAX, SORT_MEAN, SORT_MEDIAN, SORT_NONE)
 from . import strategies
 
 import argparse
@@ -9,30 +11,16 @@ import re
 import sys
 
 def main():
-    STRATEGIES = {
-        "nuc": {
-            "name": "NucleotideCounterStrategy",
-            "desc": "Count one or more individual nucleotides",
-            "class": strategies.NucleotideCounterStrategy,
-        },
-        "motif": {
-            "name": "MotifCounterStrategy",
-            "desc": "Count one or more nucleotide motifs",
-            "class": strategies.MotifCounterStrategy,
-        },
-        "gc": {
-            "name": "GCRatioStrategy",
-            "desc": "Calculate GC ratio over regions",
-            "class": strategies.GCRatioStrategy,
-        },
-        "ref": {
-            "name": "ReferenceConsensusStrategy",
-            "desc": "Calculate (dis)similarity to a given reference",
-            "class": strategies.ReferenceConsensusStrategy,
-        },
-    }
-    FORMATS = ["bed", "circos", "melt", "table"] #TODO Gross duplication
-    SORTS = ["min", "max", "mean", "median", "none"]
+    STRATEGIES = {}
+    for strategy in (strategies.NucleotideCounterStrategy,
+                     strategies.MotifCounterStrategy,
+                     strategies.GCRatioStrategy,
+                     strategies.ReferenceConsensusStrategy):
+        STRATEGIES[strategy.shortName()] = {"name": strategy.__name__,
+                                            "desc": strategy.__doc__, 
+                                            "class": strategy}
+    FORMATS = (FORMAT_BED, FORMAT_CIRCOS, FORMAT_MELT, FORMAT_TABLE)
+    SORTS = (SORT_MIN, SORT_MAX, SORT_MEAN, SORT_MEDIAN, SORT_NONE)
 
     if len(sys.argv) == 2:
         if sys.argv[1].lower() == "list":
@@ -65,9 +53,11 @@ def main():
     for i, idx in enumerate(args.faidx):
         sequence_faidx[i] = { "file": idx }
 
-    g = Goldilocks(STRATEGIES[args.strategy]["class"](tracks), sequence_faidx, length=args.length, stride=args.stride, processes=args.processes, is_faidx=True)
+    g = Goldilocks(STRATEGIES[args.strategy]["class"](tracks),
+                   sequence_faidx, length=args.length, stride=args.stride,
+                   processes=args.processes, is_faidx=True)
 
-    if args.sort != "none":
+    if args.sort != SORT_NONE:
         g.query(args.sort).export_meta(sep="\t", fmt=args.format)
     else:
         g.export_meta(sep="\t", fmt=args.format)
