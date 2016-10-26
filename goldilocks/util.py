@@ -1,5 +1,17 @@
 import re
 
+FORMAT_BED = "bed"
+FORMAT_CIRCOS = "circos"
+FORMAT_MELT = "melt"
+FORMAT_TABLE = "table"
+
+SORT_MIN = "min"
+SORT_MAX = "max"
+SORT_MEAN = "mean"
+SORT_MEDIAN = "median"
+SORT_NONE = "none"
+
+
 def parse_si_bp(option):
     SI_STEPS = {
         'K': 1000,                  # strictly speaking should be k...
